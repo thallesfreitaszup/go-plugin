@@ -14,7 +14,7 @@ type WebhookRequest struct {
 	URL string    `json:"url"`
 	Events []string `json:"events"`
 }
-func (w WebhookRequest) ToDomain() Webhook {
+func (w WebhookRequest) Taskmain() Webhook {
 	return Webhook{
 		URL: w.URL,
 		Events: w.Events,
@@ -27,7 +27,7 @@ func (h Handler) Post(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
-	_ , err = h.Service.Create(webhookRequest.ToDomain())
+	_ , err = h.Service.Create(webhookRequest.Taskmain())
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}

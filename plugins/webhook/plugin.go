@@ -3,74 +3,72 @@ package webhook
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"github.com/beego/beego/v2/client/orm"
 	"github.com/labstack/echo/v4"
-	"github.com/segmentio/kafka-go"
+	logstack "github.com/labstack/gommon/log"
 	"log"
 	"net/http"
-	"os"
-	kafkautils "poc-plugin/internal/kafka"
+	"poc-plugin/internal/configuration"
+	"poc-plugin/plugins"
 )
-type Plugin struct {
-	Echo *echo.Echo
-	Orm orm.Ormer
-	Handler Handler
-}
+const (
+	pluginName = "webhook"
 
+)
+var main Main
 
-func (p Plugin) Start() {
-
-	p.Handler = Handler{ Service: Service{Repository: Repository{p.Orm}}}
-	p.Echo.POST("/webhook", p.Handler.Post)
-	p.Echo.GET("/webhook", p.Handler.Find)
-	log.Println("Started plugin Webhook")
-	go p.startListeningEvents()
-}
-
-func(p Plugin) startListeningEvents() {
-	// create a new logger that outputs to stdout
-	// and has the `kafka reader` prefix
-	l := log.New(os.Stdout, "kafka reader: ", 0)
-	// initialize a new reader with the brokers and topic
-	// the groupID identifies the consumer and prevents
-	// it from receiving duplicate messages
-	r := kafka.NewReader(kafka.ReaderConfig{
-		Brokers: []string{kafkautils.BrokerAddress},
-		Topic:   kafkautils.Topic,
-		GroupID: "my-group",
-		// assign the logger to the reader
-		Logger: l,
-	})
-	for {
-		// the `ReadMessage` method blocks until we receive the next event
-		msg, err := r.ReadMessage(kafkautils.Ctx)
-		if err != nil {
-			panic("could not read message " + err.Error())
-
-		}
-		webhookList, _ := p.Handler.Service.Find()
-
-
-		for _, webhook := range webhookList {
-			p.Notify(webhook, string(msg.Value))
-		}
-		// after receiving the message, log its value
-		fmt.Println("received: ", string(msg.Value))
+func init (){
+	if !isEnabled(){
+		return
 	}
+	entityManager := configuration.GetDBManager()
+	handler :=  Handler{ Service: Service{Repository: Repository{entityManager}}}
+	main = Main{
+		ApiManager: configuration.GetAPIManager(),
+		EntityManager: entityManager,
+		Handler: handler,
+	}
+	main.ApiManager.POST("/webhook", main.Handler.Post)
+	main.ApiManager.GET("/webhook", main.Handler.Find)
+	plugins.RegisterTaskEventHandler(pluginName, main.Notify)
+	plugins.RegisterUserEventHandler(pluginName, main.Notify)
+	logstack.Info("Started Plugin Webhook")
+}
+
+func isEnabled() bool {
+	return plugins.GetPluginManager().IsPluginEnabled(pluginName)
+}
+
+type Main struct {
+	ApiManager *echo.Echo
+	EntityManager orm.Ormer
+	Handler Handler
 }
 
 type Request struct {
 	Content interface{} `json:"content"`
 }
 
-func (p Plugin) Notify(webhook Webhook, data string ) {
-	client := http.Client{}
+func (m Main) Notify(event interface{}) {
+
+	data, _ := json.Marshal(event)
+
+	webhookList, err := m.Handler.Service.Find()
+	if err != nil {
+		logstack.Error("Failed to find webhooks")
+	}
+	for _, webhook := range webhookList {
+		m.sendRequest(string(data), webhook.URL)
+	}
+}
+
+func (m Main) sendRequest(data string, url string) {
 	requestContent := Request{
 		Content: data,
 	}
+	client := http.Client{}
 	contentBytes, _ := json.Marshal(requestContent)
-	req, _ := http.NewRequest("POST", webhook.URL, bytes.NewReader(contentBytes))
+	req, _ := http.NewRequest("POST", url, bytes.NewReader(contentBytes))
 	req.Header.Set("Content-Type","application/json")
 	response, err := client.Do(req)
 	if err != nil {

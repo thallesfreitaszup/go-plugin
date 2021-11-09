@@ -1,11 +1,11 @@
 package authorization
 
 import (
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"poc-plugin/internal"
-	"poc-plugin/internal/kafka"
+	"poc-plugin/internal/configuration/database"
+	"poc-plugin/plugins"
 )
 
 type Handler struct {
@@ -18,8 +18,8 @@ type UserRequest struct {
 	Email string    `json:"email"`
 	Password string `json:"password"`
 }
-func (u UserRequest) ToDomain() User {
-	return User{
+func (u UserRequest) ToEntity() database.User {
+	return database.User{
 		Name:     u.Name,
 		Password: u.Password,
 		Email:    u.Email,
@@ -32,12 +32,13 @@ func (h Handler) Post(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
-	user , err := h.Service.Create(userRequest.ToDomain())
+	user , err := h.Service.Create(userRequest.ToEntity())
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
-	requestId:= c.Get(internal.RequestIdValueConstant).(uuid.UUID)
-	kafka.Produce(kafka.Ctx, UserCreate, UserEvent{ User: user, RequestId: requestId.String() })
+	requestId:= c.Get(internal.RequestIdValueConstant).(string)
+	userEvent := createEvent(user, plugins.UserUnauthorized, requestId)
+	plugins.HandleUserEvent(userEvent)
 	return c.NoContent(http.StatusNoContent)
 }
 //

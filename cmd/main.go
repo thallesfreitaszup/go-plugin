@@ -1,29 +1,16 @@
 package main
 
 import (
-	"log"
 	"poc-plugin/internal/configuration"
-	"poc-plugin/internal/plugin"
-	"poc-plugin/web/api"
+	_ "poc-plugin/plugins/plugin-imports"
+	taskHandler "poc-plugin/web/handler/task"
 )
 
 func main() {
-	var connection = configuration.GetDBConnection()
-	pluginManager, err := plugin.NewManager()
-	if err != nil {
-		log.Fatalln(err)
-	}
-	apiMain := api.Main{
-		Connection: connection,
-	}
-	e:= apiMain.NewEcho()
-	pluginMain := plugin.Main{
-		Echo: e,
-		Manager: pluginManager,
-		Orn: connection,
-	}
-	pluginMain.Start()
-	e.Logger.Fatal(e.Start(":8080"))
+	apiManager := configuration.GetAPIManager()
+	dbManager := configuration.GetDBManager()
+	taskHandler.New(dbManager, apiManager)
+	apiManager.Logger.Fatal(apiManager.Start(":8080"))
 }
 
 //// Handler

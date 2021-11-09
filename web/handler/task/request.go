@@ -1,17 +1,17 @@
-package todo
+package task
 
 import (
-	"poc-plugin/internal/todo"
+	"poc-plugin/internal/task"
 	"time"
 )
 
-type TodoRequest struct {
+type TaskRequest struct {
 	Name string `json:"name"`
 	Status string `json:"status"`
 }
 
-func (r TodoRequest) ToDomain() todo.Todo {
-	return todo.Todo{
+func (r TaskRequest) ToDomain() task.Task {
+	return task.Task{
 		Name: r.Name,
 		Status: r.Status,
 		CreatedAt: time.Now().String(),
