@@ -1,0 +1,13 @@
+plugins:
+  - name: webhook
+    events:
+      - TODO_CREATE
+      - TODO_UPDATE
+      - TODO_DELETE
+      - TOOD_READ
+    enabled: true
+  - name: authorization
+    enabled: true
+
+  - name: log
+    enabled: true
