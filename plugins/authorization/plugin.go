@@ -6,44 +6,40 @@ import (
 	"log"
 	"net/http"
 	"poc-plugin/internal"
-	"poc-plugin/internal/kafka"
+	"poc-plugin/internal/configuration"
+	"poc-plugin/internal/configuration/database"
+	"poc-plugin/plugins"
+)
+const(
+	PluginName = "authorization"
 )
 
-
-type Plugin struct {
-	Echo *echo.Echo
-	Orm orm.Ormer
-	Handler Handler
-}
-
-type UserEvent struct {
-	User User `json:"user"`
-	RequestId string `json:"requestId"`
-}
-type Event string
-const (
-	UserCreate Event = "USER_CREATE"
-	UserDelete Event = "USER_DELETE"
-	UserAuthorized Event = "USER_AUTHORIZED"
-	UserUnauthorized Event = "USER_UNAUTHORIZED"
-
-)
-
-
-func (p Plugin) Start() {
-	p.Handler = Handler{ Service: Service{Repository: Repository{p.Orm}}}
-	p.Echo.Use(p.authHandler)
-	p.Echo.POST("/user", p.Handler.Post)
+func init() {
+	if !isEnabled(){
+		return
+	}
+	echo := configuration.GetAPIManager()
+	manager := configuration.GetDBManager()
+	p := Plugin{
+		Echo: echo,
+		Handler:  Handler{ Service: Service{Repository: Repository{Orm: manager}}},
+	}
+	echo.Use(p.authHandler)
+	echo.POST("/user", p.Handler.Post)
 	log.Println("Started plugin Authorization")
 }
 
-
-type Request struct {
-	Content interface{} `json:"content"`
+func isEnabled() bool {
+	return plugins.GetPluginManager().IsPluginEnabled(PluginName)
 }
 
+type Plugin struct {
+	Echo *echo.Echo
+	Manager orm.Ormer
+	Handler Handler
+}
 
-func (p Plugin) authHandler(next echo.HandlerFunc) echo.HandlerFunc {
+func(p Plugin) authHandler(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		request := c.Request()
 		if request.URL.Path == "/user" {
@@ -53,23 +49,35 @@ func (p Plugin) authHandler(next echo.HandlerFunc) echo.HandlerFunc {
 		username,password, ok := request.BasicAuth()
 		requestId := c.Get(internal.RequestIdValueConstant).(string)
 		if !ok {
-			kafka.Produce(kafka.Ctx, UserUnauthorized, UserEvent{ User: User { Email: username }, RequestId: requestId})
+			user := database.User{ Name: username }
+			userEvent := createEvent(user, plugins.UserUnauthorized, requestId)
+			 plugins.HandleUserEvent(userEvent)
 			return c.JSON(http.StatusUnauthorized, "Unauthorized")
 		}
 
 		user, err := p.Handler.Service.FindByEmail(username)
 		if err != nil {
 			log.Println("Error finding user", err.Error())
-			kafka.Produce(kafka.Ctx, UserUnauthorized, UserEvent{ User: User { Email: username }, RequestId: requestId})
+			userEvent := createEvent(user, plugins.UserUnauthorized, requestId)
+			plugins.HandleUserEvent(userEvent)
 			return c.JSON(http.StatusInternalServerError, err)
-
 		}
 		if user.Password != password {
 			log.Println("Password does not match", user)
-			kafka.Produce(kafka.Ctx,UserUnauthorized, UserEvent{ User: User { Email: username }, RequestId: requestId})
+			userEvent := createEvent(user, plugins.UserUnauthorized, requestId)
+			plugins.HandleUserEvent(userEvent)
 			return  c.JSON(http.StatusUnauthorized, "Unauthorized")
 		}
-		kafka.Produce(kafka.Ctx, UserAuthorized, UserEvent{ User: User { Email: username }, RequestId: requestId})
+		userEvent := createEvent(user, plugins.UserAuthorized, requestId)
+		plugins.HandleUserEvent(userEvent)
 		return next(c)
+	}
+}
+
+func createEvent(user database.User, unauthorized plugins.Event, id string) plugins.UserEvent {
+	return plugins.UserEvent{
+		User: user,
+		Event: unauthorized,
+		RequestId: id,
 	}
 }

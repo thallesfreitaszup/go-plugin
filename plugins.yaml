@@ -1,13 +1,13 @@
 plugins:
   - name: webhook
     events:
-      - TODO_CREATE
-      - TODO_UPDATE
-      - TODO_DELETE
-      - TOOD_READ
+      - Task_CREATE
     enabled: true
   - name: authorization
+    events:
+      - TASK_CREATE
     enabled: true
-
   - name: log
+    events:
+      - Task_CREATE
     enabled: true

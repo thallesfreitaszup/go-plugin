@@ -1,5 +1,5 @@
-package todo
-type Todo struct {
+package task
+type Task struct {
 	Id   int `orm:"auto,column(id)"`
 	Name string `orm:"column(name)"`
 	CreatedAt string `orm:"column(created_at)"`

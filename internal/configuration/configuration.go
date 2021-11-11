@@ -3,34 +3,28 @@ package configuration
 
 import (
 	"github.com/beego/beego/v2/client/orm"
+	"github.com/labstack/echo/v4"
 	_ "github.com/lib/pq"
-	"poc-plugin/internal/todo"
-	"poc-plugin/plugins/authorization"
-	"poc-plugin/plugins/logger"
-	"poc-plugin/plugins/webhook"
+	"poc-plugin/internal/configuration/database"
 )
 
+var apiManager *echo.Echo
+var entityManager orm.Ormer
 
 func init() {
-	// set default database
-	orm.RegisterDriver("postgres", orm.DRPostgres)
+	entityManager = database.CreateDBManager()
+	apiManager = ConfigureAPI()
 
-	// set default database
-	orm.RegisterDataBase("default", "postgres", "postgres://teste:teste@localhost/teste?sslmode=disable")
-
-	// register model
-	orm.RegisterModel(new(todo.Todo))
-	orm.RegisterModel(new(webhook.WebhookDB))
-	orm.RegisterModel(new(authorization.User))
-	orm.RegisterModel(new(log.TodoLog))
-	orm.RegisterModel(new(log.UserLog))
-	// create table
-	orm.RunSyncdb("default", false, true)
 }
 
-func GetDBConnection( ) orm.Ormer {
-	return orm.NewOrm()
+func GetAPIManager() *echo.Echo{
+	return apiManager
 }
+
+func GetDBManager() orm.Ormer{
+	return entityManager
+}
+
 
 
 

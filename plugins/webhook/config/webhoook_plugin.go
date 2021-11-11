@@ -4,7 +4,7 @@ import (
 	"github.com/hashicorp/go-plugin"
 	"net/rpc"
 )
-type Todo struct {
+type Task struct {
 	Id   int `orm:"auto,column(id)"`
 	Name string `orm:"column(name)"`
 	CreatedAt string `orm:"column(created_at)"`
@@ -13,30 +13,30 @@ type Todo struct {
 }
 type Event string
 const (
-	TodoCreate Event = "TODO_CREATE"
-	TodoUpdate Event = "TODO_UPDATE"
-	TodoDelete Event = "TODO_DELETE"
-	TodoRead  Event = "TODO_READ"
+	TaskCreate Event = "Task_CREATE"
+	TaskUpdate Event = "Task_UPDATE"
+	TaskDelete Event = "Task_DELETE"
+	TaskRead  Event = "Task_READ"
 )
 
-type TodoEvent struct {
-	Todo Todo `json:"todo"`
+type TaskEvent struct {
+	Task Task `json:"Task"`
 	Event Event `json:"event"`
 }
 
 
 
 type Notifier interface {
-	Notify(event TodoEvent) string
+	Notify(event TaskEvent) string
 }
 
 func (s *NotifierRPCServer) Notify(mapArgs map[string]interface{}, resp *string) error {
-	args := mapArgs["data"].(TodoEvent)
+	args := mapArgs["data"].(TaskEvent)
 	*resp = s.Impl.Notify(args)
 	return nil
 }
 
-func (g *NotifierRPCClient) Notify(event TodoEvent) string {
+func (g *NotifierRPCClient) Notify(event TaskEvent) string {
 	var resp string
 	err := g.client.Call("Plugin.Notify", map[string]interface{}{
 		"data":   event,
