@@ -1,10 +1,11 @@
 package plugins
 
 import (
-	"github.com/labstack/gommon/log"
-	"gopkg.in/yaml.v2"
 	"os"
 	"reflect"
+
+	"github.com/labstack/gommon/log"
+	"gopkg.in/yaml.v2"
 )
 
 func GetPluginManager() Manager {

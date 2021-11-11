@@ -2,12 +2,12 @@ plugins:
   - name: webhook
     events:
       - Task_CREATE
-    enabled: true
+    enabled: false
   - name: authorization
     events:
       - TASK_CREATE
-    enabled: true
+    enabled: false
   - name: log
     events:
       - Task_CREATE
-    enabled: true
+    enabled: false
