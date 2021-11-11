@@ -17,3 +17,7 @@ func (s Service) CreateUserLog(userLog database.UserLog) (int64, error) {
 func (s Service) findByRequestId(id string) (database.UserLog, error){
 	return s.Repository.FindByRequestId(id)
 }
+
+func (s Service) GetTasks() []database.TaskLog {
+	return s.Repository.getTasks()
+}

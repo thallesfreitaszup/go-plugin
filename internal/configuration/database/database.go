@@ -29,7 +29,7 @@ type User struct {
 	Id int		`orm:"auto,column(id)"`
 	Name   string  `orm:"column(name)"`
 	Email string	 `orm:"column(email)"`
-	Password string `orm:"column(password)"`
+	Password string `orm:"column(password)" json:"-"`
 }
 
 type WebhookDB struct {

@@ -18,13 +18,7 @@ type UserRequest struct {
 	Email string    `json:"email"`
 	Password string `json:"password"`
 }
-func (u UserRequest) ToEntity() database.User {
-	return database.User{
-		Name:     u.Name,
-		Password: u.Password,
-		Email:    u.Email,
-	}
-}
+
 
 func (h Handler) Post(c echo.Context) error {
 	userRequest := UserRequest{}
@@ -38,15 +32,21 @@ func (h Handler) Post(c echo.Context) error {
 	}
 	requestId:= c.Get(internal.RequestIdValueConstant).(string)
 	userEvent := createEvent(user, plugins.UserUnauthorized, requestId)
-	plugins.HandleUserEvent(userEvent)
-	return c.NoContent(http.StatusNoContent)
+	userResponse := UserResponse {
+		Id : user.Id,
+	}
+	go plugins.HandleUserEvent(userEvent)
+	return c.JSON(http.StatusCreated, userResponse)
 }
-//
-//func (h Handler) Find(c echo.Context) error {
-//
-//	webhookList , err := h.Service.Find()
-//	if err != nil {
-//		return c.JSON(http.StatusInternalServerError, err.Error())
-//	}
-//	return c.JSON(http.StatusOK, webhookList)
-//}
+
+type UserResponse struct {
+	Id int
+}
+
+func (u UserRequest) ToEntity() database.User {
+	return database.User{
+		Name:     u.Name,
+		Password: u.Password,
+		Email:    u.Email,
+	}
+}

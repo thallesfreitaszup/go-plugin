@@ -27,3 +27,9 @@ func (r Repository) FindByRequestId(id string) (database.UserLog,error) {
 func (r Repository) CreateUserLog(log database.UserLog) (int64, error) {
   return r.Orm.Insert(&log)
 }
+
+func (r Repository) getTasks() []database.TaskLog {
+  var taskLogs []database.TaskLog
+  r.Orm.QueryTable(database.TaskLog{}).RelatedSel().All(&taskLogs)
+  return taskLogs
+}

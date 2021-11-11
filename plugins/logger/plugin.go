@@ -1,8 +1,6 @@
 package log
 
 import (
-	"github.com/beego/beego/v2/client/orm"
-	"github.com/labstack/echo/v4"
 	"log"
 	"poc-plugin/internal/configuration"
 	"poc-plugin/internal/configuration/database"
@@ -19,10 +17,15 @@ func init() {
 		return
 	}
 	manager := configuration.GetDBManager()
+	apiManager := configuration.GetAPIManager()
+	logService := Service{Repository: Repository{Orm: manager}}
+	handler := Handler{ Service: logService}
 	p := Plugin{
-		Service: Service{Repository: Repository{Orm: manager}},
+		Service: logService,
 		UserService: authorization.Service { Repository: authorization.Repository{Orm: manager} },
+		Handler: handler,
 	}
+	apiManager.GET("/logs/task", handler.GetTaskLogs)
 	plugins.RegisterUserEventHandler(PluginName, p.handleUserLog)
 	plugins.RegisterTaskEventHandler(PluginName, p.handleTaskLog)
 	log.Println("Started plugin Logger")
@@ -34,8 +37,7 @@ func isEnabled() bool {
 
 
 type Plugin struct {
-	Echo        *echo.Echo
-	Orm         orm.Ormer
+	Handler    Handler
 	Service     Service
 	UserService authorization.Service
 }
