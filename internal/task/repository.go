@@ -13,9 +13,9 @@ type RepositoryImpl struct {
 	Manager orm.Ormer
 }
 
-func (r RepositoryImpl) Create(task Task) (Task,error) {
-	id, err :=  r.Manager.Insert(&task)
-	if err != nil{
+func (r RepositoryImpl) Create(task Task) (Task, error) {
+	id, err := r.Manager.Insert(&task)
+	if err != nil {
 		return Task{}, err
 	}
 	return r.Find(int(id))
@@ -29,8 +29,8 @@ func (r RepositoryImpl) Delete(task Task) {
 	r.Manager.Delete(&task)
 }
 
-func (r RepositoryImpl) Find(id int) (Task,error) {
+func (r RepositoryImpl) Find(id int) (Task, error) {
 	var task Task
 	err := r.Manager.Raw("SELECT id,name,created_at,finished_at,status FROM task WHERE id = ?", id).QueryRow(&task)
-	return task,err
+	return task, err
 }

@@ -12,13 +12,11 @@ type Handler struct {
 	Service Service
 }
 
-
 type UserRequest struct {
-	Name string    `json:"name"`
-	Email string    `json:"email"`
+	Name     string `json:"name"`
+	Email    string `json:"email"`
 	Password string `json:"password"`
 }
-
 
 func (h Handler) Post(c echo.Context) error {
 	userRequest := UserRequest{}
@@ -26,14 +24,14 @@ func (h Handler) Post(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
-	user , err := h.Service.Create(userRequest.ToEntity())
+	user, err := h.Service.Create(userRequest.ToEntity())
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
-	requestId:= c.Get(internal.RequestIdValueConstant).(string)
+	requestId := c.Get(internal.RequestIdValueConstant).(string)
 	userEvent := createEvent(user, plugins.UserUnauthorized, requestId)
-	userResponse := UserResponse {
-		Id : user.Id,
+	userResponse := UserResponse{
+		Id: user.Id,
 	}
 	go plugins.HandleUserEvent(userEvent)
 	return c.JSON(http.StatusCreated, userResponse)

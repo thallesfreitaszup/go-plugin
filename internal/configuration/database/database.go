@@ -26,31 +26,31 @@ func CreateDBManager() orm.Ormer {
 }
 
 type User struct {
-	Id int		`orm:"auto,column(id)"`
-	Name   string  `orm:"column(name)"`
-	Email string	 `orm:"column(email)"`
+	Id       int    `orm:"auto,column(id)"`
+	Name     string `orm:"column(name)"`
+	Email    string `orm:"column(email)"`
 	Password string `orm:"column(password)" json:"-"`
 }
 
 type WebhookDB struct {
-	Id   int `orm:"auto,column(id)"`
-	URL string `orm:"column(url)"`
+	Id     int    `orm:"auto,column(id)"`
+	URL    string `orm:"column(url)"`
 	Events string `orm:"type(jsonb);column(events)"`
 }
 
 type TaskLog struct {
-	Id int `orm:"auto;column(id)"`
-	Action string `orm:"column(action)"`
-	RequestId string `orm:"column(request_id)"`
-	User *User `orm:"null;rel(fk);on_delete(set_null)"`
-	Task *task.Task `orm:"null;rel(fk);on_delete(set_null)"`
-	Timestamp  time.Time `orm:"column(timestamp)"`
+	Id        int        `orm:"auto;column(id)"`
+	Action    string     `orm:"column(action)"`
+	RequestId string     `orm:"column(request_id)"`
+	User      *User      `orm:"null;rel(fk);on_delete(set_null)"`
+	Task      *task.Task `orm:"null;rel(fk);on_delete(set_null)"`
+	Timestamp time.Time  `orm:"column(timestamp)"`
 }
 
 type UserLog struct {
-	Id int `orm:"auto;column(id)"`
-	Action string `orm:"column(action)"`
-	RequestId string `orm:"column(request_id)"`
-	User *User `orm:"null;rel(fk);on_delete(set_null)"`
-	Timestamp  time.Time `orm:"column(timestamp)"`
+	Id        int       `orm:"auto;column(id)"`
+	Action    string    `orm:"column(action)"`
+	RequestId string    `orm:"column(request_id)"`
+	User      *User     `orm:"null;rel(fk);on_delete(set_null)"`
+	Timestamp time.Time `orm:"column(timestamp)"`
 }

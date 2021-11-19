@@ -9,14 +9,14 @@ type Handler struct {
 	Service Service
 }
 
-
 type WebhookRequest struct {
-	URL string    `json:"url"`
+	URL    string   `json:"url"`
 	Events []string `json:"events"`
 }
+
 func (w WebhookRequest) Taskmain() Webhook {
 	return Webhook{
-		URL: w.URL,
+		URL:    w.URL,
 		Events: w.Events,
 	}
 }
@@ -27,7 +27,7 @@ func (h Handler) Post(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
-	_ , err = h.Service.Create(webhookRequest.Taskmain())
+	_, err = h.Service.Create(webhookRequest.Taskmain())
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
@@ -36,7 +36,7 @@ func (h Handler) Post(c echo.Context) error {
 
 func (h Handler) Find(c echo.Context) error {
 
-	webhookList , err := h.Service.Find()
+	webhookList, err := h.Service.Find()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}

@@ -6,7 +6,6 @@ type Service struct {
 	Repository Repository
 }
 
-
 func (s Service) CreateTaskLog(taskLog database.TaskLog) (int64, error) {
 	return s.Repository.Create(taskLog)
 }
@@ -14,7 +13,7 @@ func (s Service) CreateTaskLog(taskLog database.TaskLog) (int64, error) {
 func (s Service) CreateUserLog(userLog database.UserLog) (int64, error) {
 	return s.Repository.CreateUserLog(userLog)
 }
-func (s Service) findByRequestId(id string) (database.UserLog, error){
+func (s Service) findByRequestId(id string) (database.UserLog, error) {
 	return s.Repository.FindByRequestId(id)
 }
 

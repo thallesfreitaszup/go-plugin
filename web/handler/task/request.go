@@ -6,14 +6,14 @@ import (
 )
 
 type TaskRequest struct {
-	Name string `json:"name"`
+	Name   string `json:"name"`
 	Status string `json:"status"`
 }
 
 func (r TaskRequest) ToDomain() task.Task {
 	return task.Task{
-		Name: r.Name,
-		Status: r.Status,
+		Name:      r.Name,
+		Status:    r.Status,
 		CreatedAt: time.Now().String(),
 	}
 }

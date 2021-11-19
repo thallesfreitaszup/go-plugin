@@ -10,5 +10,5 @@ type Handler struct {
 }
 
 func (h Handler) GetTaskLogs(c echo.Context) error {
-	return 	c.JSON(http.StatusOK, h.Service.GetTasks())
+	return c.JSON(http.StatusOK, h.Service.GetTasks())
 }

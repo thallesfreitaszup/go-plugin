@@ -6,6 +6,7 @@ import (
 )
 
 type Event string
+
 const (
 	TaskCreate       Event = "Task_CREATE"
 	TaskUpdate       Event = "Task_UPDATE"
@@ -15,17 +16,16 @@ const (
 	UserDelete       Event = "USER_DELETE"
 	UserAuthorized   Event = "USER_AUTHORIZED"
 	UserUnauthorized Event = "USER_UNAUTHORIZED"
-
 )
 
 type TaskEvent struct {
-Task      task.Task `json:"task"`
-RequestId string    `json:"requestId"`
-Event     Event     `json:"event"`
+	Task      task.Task `json:"task"`
+	RequestId string    `json:"requestId"`
+	Event     Event     `json:"event"`
 }
 
 type UserEvent struct {
 	User      database.User `json:"task"`
-	RequestId string    `json:"requestId"`
-	Event     Event     `json:"event"`
+	RequestId string        `json:"requestId"`
+	Event     Event         `json:"event"`
 }
