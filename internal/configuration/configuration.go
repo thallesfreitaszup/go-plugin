@@ -1,4 +1,3 @@
-
 package configuration
 
 import (
@@ -17,14 +16,10 @@ func init() {
 
 }
 
-func GetAPIManager() *echo.Echo{
+func GetAPIManager() *echo.Echo {
 	return apiManager
 }
 
-func GetDBManager() orm.Ormer{
+func GetDBManager() orm.Ormer {
 	return entityManager
 }
-
-
-
-
