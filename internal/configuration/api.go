@@ -14,7 +14,6 @@ func ConfigureAPI() *echo.Echo {
 	return e
 }
 
-
 func requestIdMiddleWare(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 

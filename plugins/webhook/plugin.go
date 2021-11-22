@@ -11,22 +11,23 @@ import (
 	"poc-plugin/internal/configuration"
 	"poc-plugin/plugins"
 )
+
 const (
 	pluginName = "webhook"
-
 )
+
 var main Main
 
-func init (){
-	if !isEnabled(){
+func init() {
+	if !isEnabled() {
 		return
 	}
 	entityManager := configuration.GetDBManager()
-	handler :=  Handler{ Service: Service{Repository: Repository{entityManager}}}
+	handler := Handler{Service: Service{Repository: Repository{entityManager}}}
 	main = Main{
-		ApiManager: configuration.GetAPIManager(),
+		ApiManager:    configuration.GetAPIManager(),
 		EntityManager: entityManager,
-		Handler: handler,
+		Handler:       handler,
 	}
 	main.ApiManager.POST("/webhook", main.Handler.Post)
 	main.ApiManager.GET("/webhook", main.Handler.Find)
@@ -40,9 +41,9 @@ func isEnabled() bool {
 }
 
 type Main struct {
-	ApiManager *echo.Echo
+	ApiManager    *echo.Echo
 	EntityManager orm.Ormer
-	Handler Handler
+	Handler       Handler
 }
 
 type Request struct {
@@ -69,7 +70,7 @@ func (m Main) sendRequest(data string, url string) {
 	client := http.Client{}
 	contentBytes, _ := json.Marshal(requestContent)
 	req, _ := http.NewRequest("POST", url, bytes.NewReader(contentBytes))
-	req.Header.Set("Content-Type","application/json")
+	req.Header.Set("Content-Type", "application/json")
 	response, err := client.Do(req)
 	if err != nil {
 		log.Fatalln(err)
@@ -80,4 +81,3 @@ func (m Main) sendRequest(data string, url string) {
 	}
 	response.Body.Close()
 }
-

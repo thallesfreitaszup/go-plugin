@@ -10,19 +10,20 @@ import (
 	"poc-plugin/internal/configuration/database"
 	"poc-plugin/plugins"
 )
-const(
+
+const (
 	PluginName = "authorization"
 )
 
 func init() {
-	if !isEnabled(){
+	if !isEnabled() {
 		return
 	}
 	echo := configuration.GetAPIManager()
 	manager := configuration.GetDBManager()
 	p := Plugin{
-		Echo: echo,
-		Handler:  Handler{ Service: Service{Repository: Repository{Orm: manager}}},
+		Echo:    echo,
+		Handler: Handler{Service: Service{Repository: Repository{Orm: manager}}},
 	}
 	echo.Use(p.authHandler)
 	echo.POST("/user", p.Handler.Post)
@@ -34,24 +35,24 @@ func isEnabled() bool {
 }
 
 type Plugin struct {
-	Echo *echo.Echo
+	Echo    *echo.Echo
 	Manager orm.Ormer
 	Handler Handler
 }
 
-func(p Plugin) authHandler(next echo.HandlerFunc) echo.HandlerFunc {
+func (p Plugin) authHandler(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		request := c.Request()
 		if request.URL.Path == "/user" {
 			return next(c)
 		}
 
-		username,password, ok := request.BasicAuth()
+		username, password, ok := request.BasicAuth()
 		requestId := c.Get(internal.RequestIdValueConstant).(string)
 		if !ok {
-			user := database.User{ Name: username }
+			user := database.User{Name: username}
 			userEvent := createEvent(user, plugins.UserUnauthorized, requestId)
-			 plugins.HandleUserEvent(userEvent)
+			plugins.HandleUserEvent(userEvent)
 			return c.JSON(http.StatusUnauthorized, "Unauthorized")
 		}
 
@@ -66,7 +67,7 @@ func(p Plugin) authHandler(next echo.HandlerFunc) echo.HandlerFunc {
 			log.Println("Password does not match", user)
 			userEvent := createEvent(user, plugins.UserUnauthorized, requestId)
 			plugins.HandleUserEvent(userEvent)
-			return  c.JSON(http.StatusUnauthorized, "Unauthorized")
+			return c.JSON(http.StatusUnauthorized, "Unauthorized")
 		}
 		userEvent := createEvent(user, plugins.UserAuthorized, requestId)
 		plugins.HandleUserEvent(userEvent)
@@ -76,8 +77,8 @@ func(p Plugin) authHandler(next echo.HandlerFunc) echo.HandlerFunc {
 
 func createEvent(user database.User, unauthorized plugins.Event, id string) plugins.UserEvent {
 	return plugins.UserEvent{
-		User: user,
-		Event: unauthorized,
+		User:      user,
+		Event:     unauthorized,
 		RequestId: id,
 	}
 }

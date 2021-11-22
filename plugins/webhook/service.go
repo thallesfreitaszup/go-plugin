@@ -5,23 +5,24 @@ import (
 	"log"
 	"poc-plugin/internal/configuration/database"
 )
+
 type Service struct {
 	Repository Repository
 }
 
 type Webhook struct {
-Id   int
-URL string
-Events []string
+	Id     int
+	URL    string
+	Events []string
 }
 
 func (w Webhook) ToEntity() database.WebhookDB {
-	eventsString, err  := json.Marshal(w.Events)
+	eventsString, err := json.Marshal(w.Events)
 	if err != nil {
 		log.Fatal(err)
 	}
 	return database.WebhookDB{
-		URL: w.URL,
+		URL:    w.URL,
 		Events: string(eventsString),
 	}
 }

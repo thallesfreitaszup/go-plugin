@@ -2,28 +2,30 @@ package log
 
 import (
 	"log"
+	"time"
+
 	"poc-plugin/internal/configuration"
 	"poc-plugin/internal/configuration/database"
 	"poc-plugin/plugins"
 	"poc-plugin/plugins/authorization"
-	"time"
 )
-const(
+
+const (
 	PluginName = "log"
 )
 
 func init() {
-	if !isEnabled(){
+	if !isEnabled() {
 		return
 	}
 	manager := configuration.GetDBManager()
 	apiManager := configuration.GetAPIManager()
 	logService := Service{Repository: Repository{Orm: manager}}
-	handler := Handler{ Service: logService}
+	handler := Handler{Service: logService}
 	p := Plugin{
-		Service: logService,
-		UserService: authorization.Service { Repository: authorization.Repository{Orm: manager} },
-		Handler: handler,
+		Service:     logService,
+		UserService: authorization.Service{Repository: authorization.Repository{Orm: manager}},
+		Handler:     handler,
 	}
 	apiManager.GET("/logs/task", handler.GetTaskLogs)
 	plugins.RegisterUserEventHandler(PluginName, p.handleUserLog)
@@ -35,9 +37,8 @@ func isEnabled() bool {
 	return plugins.GetPluginManager().IsPluginEnabled(PluginName)
 }
 
-
 type Plugin struct {
-	Handler    Handler
+	Handler     Handler
 	Service     Service
 	UserService authorization.Service
 }
@@ -45,15 +46,15 @@ type Plugin struct {
 func (p Plugin) handleTaskLog(taskEventInterface interface{}) {
 	taskEvent := (taskEventInterface).(plugins.TaskEvent)
 	log.Println("HANDLING TASK LOG", taskEvent.RequestId)
-    userLogs, err := p.Service.findByRequestId(taskEvent.RequestId)
+	userLogs, err := p.Service.findByRequestId(taskEvent.RequestId)
 	if err != nil {
 		log.Println("No previous log on request", err.Error())
 	}
-	TaskLog := database.TaskLog {
-		Action: string(taskEvent.Event),
+	TaskLog := database.TaskLog{
+		Action:    string(taskEvent.Event),
 		RequestId: taskEvent.RequestId,
-		Task: &taskEvent.Task,
-		User: userLogs.User,
+		Task:      &taskEvent.Task,
+		User:      userLogs.User,
 		Timestamp: time.Now(),
 	}
 	_, err = p.Service.CreateTaskLog(TaskLog)
@@ -63,12 +64,12 @@ func (p Plugin) handleTaskLog(taskEventInterface interface{}) {
 	log.Println("FINISHED HANDLING TASK LOG", taskEvent.RequestId)
 }
 
-func (p Plugin) handleUserLog(userEventInterface interface {}) {
+func (p Plugin) handleUserLog(userEventInterface interface{}) {
 	userEvent := (userEventInterface).(plugins.UserEvent)
 
 	log.Println("HANDLING USER LOG", userEvent)
-	userLog := database.UserLog {
-		Action: string(userEvent.Event),
+	userLog := database.UserLog{
+		Action:    string(userEvent.Event),
 		RequestId: userEvent.RequestId,
 		User:      &userEvent.User,
 		Timestamp: time.Now(),

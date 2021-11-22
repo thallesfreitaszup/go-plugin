@@ -8,19 +8,22 @@ import (
 	"poc-plugin/internal/task"
 	"poc-plugin/plugins"
 )
+
 type Handler struct {
 	Service task.Service
 }
-func(h Handler) Get(c echo.Context) error {
+
+func (h Handler) Get(c echo.Context) error {
 	return c.String(http.StatusOK, "Hello, World!")
 }
 
 type TaskResponse struct {
 	Id int
 }
+
 func New(manager orm.Ormer, e *echo.Echo) {
 	handler := Handler{
-		Service: task.Service{Repository: task.RepositoryImpl{ Manager: manager}},
+		Service: task.Service{Repository: task.RepositoryImpl{Manager: manager}},
 	}
 	e.GET("/task", handler.Get)
 	e.POST("/task", handler.Post)
@@ -38,8 +41,8 @@ func (h Handler) Post(c echo.Context) error {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
 	}
-	TaskResponse := TaskResponse {
-		Id : task.Id,
+	TaskResponse := TaskResponse{
+		Id: task.Id,
 	}
 	handleEvent(plugins.TaskCreate, task, c.Get(internal.RequestIdValueConstant).(string))
 	return c.JSON(http.StatusCreated, TaskResponse)
@@ -47,8 +50,8 @@ func (h Handler) Post(c echo.Context) error {
 
 func handleEvent(event plugins.Event, domain task.Task, requestIdValue string) {
 	taskEvent := plugins.TaskEvent{
-		Task: domain,
-		Event: event,
+		Task:      domain,
+		Event:     event,
 		RequestId: requestIdValue,
 	}
 	plugins.HandleTaskEvent(taskEvent)
