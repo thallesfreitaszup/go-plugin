@@ -1,7 +1,6 @@
 package config
 
 import (
-	"github.com/hashicorp/go-plugin"
 	"net/rpc"
 )
 
@@ -62,10 +61,11 @@ type NotifierPlugin struct {
 	Impl Notifier
 }
 
-func (r *NotifierPlugin) Server(broker *plugin.MuxBroker) (interface{}, error) {
+func (r *NotifierPlugin) Server() (interface{}, error) {
 	return &NotifierRPCServer{Impl: r.Impl}, nil
 }
 
-func (r *NotifierPlugin) Client(broker *plugin.MuxBroker, c *rpc.Client) (interface{}, error) {
+func (r *NotifierPlugin) Client(c *rpc.Client) (interface{}, error) {
+
 	return &NotifierRPCClient{client: c}, nil
 }
